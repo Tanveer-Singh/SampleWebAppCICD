@@ -396,7 +396,7 @@ stages:
 
                 $runtimeOutput = dotnet --list-runtimes
 
-                if ($runtimeOutput -notmatch "Microsoft.AspNetCore.App 9.") {
+                if ($runtimeOutput -notmatch "Microsoft\.AspNetCore\.App 9\.0") {
 
                     Write-Error ".NET 9 Runtime not installed."
 
