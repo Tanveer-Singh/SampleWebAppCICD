@@ -382,90 +382,90 @@ stages:
           # =========================================================
 
           - task: PowerShell@2
-  displayName: 'Validate .NET Runtime'
+            displayName: 'Validate .NET Runtime'
+            
+            inputs:
+                targetType: 'inline'
 
-  inputs:
-    targetType: 'inline'
+                script: |
 
-    script: |
+                    Write-Host "========================================"
+                    Write-Host "DOTNET VALIDATION STARTED"
+                    Write-Host "========================================"
 
-      Write-Host "========================================"
-      Write-Host "DOTNET VALIDATION STARTED"
-      Write-Host "========================================"
+                    try {
 
-      try {
+                        Write-Host ""
+                        Write-Host "CURRENT USER:"
+                        Write-Host $env:USERNAME
 
-          Write-Host ""
-          Write-Host "CURRENT USER:"
-          Write-Host $env:USERNAME
+                        Write-Host ""
+                        Write-Host "MACHINE NAME:"
+                        Write-Host $env:COMPUTERNAME
 
-          Write-Host ""
-          Write-Host "MACHINE NAME:"
-          Write-Host $env:COMPUTERNAME
+                        Write-Host ""
+                        Write-Host "PATH VARIABLE:"
+                        Write-Host $env:PATH
 
-          Write-Host ""
-          Write-Host "PATH VARIABLE:"
-          Write-Host $env:PATH
+                        Write-Host ""
+                        Write-Host "DOTNET LOCATION:"
+                        where.exe dotnet
 
-          Write-Host ""
-          Write-Host "DOTNET LOCATION:"
-          where.exe dotnet
+                        Write-Host ""
+                        Write-Host "DOTNET INFO:"
+                        dotnet --info
 
-          Write-Host ""
-          Write-Host "DOTNET INFO:"
-          dotnet --info
+                        Write-Host ""
+                        Write-Host "INSTALLED RUNTIMES:"
+                        $runtimeOutput = dotnet --list-runtimes
 
-          Write-Host ""
-          Write-Host "INSTALLED RUNTIMES:"
-          $runtimeOutput = dotnet --list-runtimes
+                        Write-Host $runtimeOutput
 
-          Write-Host $runtimeOutput
+                        Write-Host ""
+                        Write-Host "CHECKING FOR:"
+                        Write-Host "Microsoft.AspNetCore.App 9.0.16"
 
-          Write-Host ""
-          Write-Host "CHECKING FOR:"
-          Write-Host "Microsoft.AspNetCore.App 9.0.16"
+                        $isInstalled =
+                        $runtimeOutput.Contains("Microsoft.AspNetCore.App 9.0.16")
 
-          $isInstalled =
-          $runtimeOutput.Contains("Microsoft.AspNetCore.App 9.0.16")
+                        Write-Host ""
+                        Write-Host "MATCH RESULT:"
+                        Write-Host $isInstalled
 
-          Write-Host ""
-          Write-Host "MATCH RESULT:"
-          Write-Host $isInstalled
+                        if ($isInstalled -eq $true) {
 
-          if ($isInstalled -eq $true) {
+                            Write-Host ""
+                            Write-Host ".NET 9.0.16 Runtime validation successful."
+                        }
+                        else {
 
-              Write-Host ""
-              Write-Host ".NET 9.0.16 Runtime validation successful."
-          }
-          else {
+                            Write-Host ""
+                            Write-Host "EXPECTED RUNTIME NOT FOUND"
 
-              Write-Host ""
-              Write-Host "EXPECTED RUNTIME NOT FOUND"
+                            Write-Host ""
+                            Write-Host "FULL RUNTIME OUTPUT BELOW:"
+                            Write-Host $runtimeOutput
 
-              Write-Host ""
-              Write-Host "FULL RUNTIME OUTPUT BELOW:"
-              Write-Host $runtimeOutput
+                            throw ".NET 9.0.16 Runtime not installed."
+                        }
+                    }
+                    catch {
 
-              throw ".NET 9.0.16 Runtime not installed."
-          }
-      }
-      catch {
+                        Write-Host ""
+                        Write-Host "========================================"
+                        Write-Host "ERROR DETAILS"
+                        Write-Host "========================================"
 
-          Write-Host ""
-          Write-Host "========================================"
-          Write-Host "ERROR DETAILS"
-          Write-Host "========================================"
+                        Write-Host $_.Exception.Message
 
-          Write-Host $_.Exception.Message
+                        Write-Host ""
+                        Write-Host "STACK TRACE:"
+                        Write-Host $_.ScriptStackTrace
 
-          Write-Host ""
-          Write-Host "STACK TRACE:"
-          Write-Host $_.ScriptStackTrace
+                        Write-Error "Runtime validation failed."
 
-          Write-Error "Runtime validation failed."
-
-          exit 1
-      }
+                        exit 1
+                    }
           # =========================================================
           # VALIDATE IIS
           # =========================================================
