@@ -229,14 +229,10 @@ stages:
 
       inputs:
         command: 'publish'
-
         publishWebProjects: false
-
         projects: '$(Project.Path)'
-
-        arguments: >
-          --configuration $(BuildConfiguration)
-          --output $(Build.ArtifactStagingDirectory)\publish
+        arguments: --configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)\publish
+        zipAfterPublish: false
 
     # =========================================================
     # CREATE ARTIFACT DIRECTORY
@@ -266,7 +262,7 @@ stages:
         rootFolderOrFile: $(Build.ArtifactStagingDirectory)\publish
         includeRootFolder: false
         archiveType: 'zip'
-        archiveFile: $(Build.ArtifactStagingDirectory)\artifact\$(Service.Name)_$(Build.BuildNumber).zip
+        archiveFile: $(Build.ArtifactStagingDirectory)\$(Service.Name)_$(Build.BuildNumber).zip
         replaceExistingArchive: true
 
     # =========================================================
