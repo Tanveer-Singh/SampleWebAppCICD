@@ -282,5 +282,4 @@ stages:
                 Service: $(Service.Name)
                 Environment: $(EnvironmentName)
                 Build: $(Build.BuildNumber)
-                Time: $(Build.QueuedTime)
                 "
