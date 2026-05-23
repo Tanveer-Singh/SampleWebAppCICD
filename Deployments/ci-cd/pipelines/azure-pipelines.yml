@@ -1,7 +1,27 @@
+# =========================================================
+# BUILD TRIGGER
+# =========================================================
+
 trigger: none
+
 pr: none
-name: '1.0.$(Rev:r)'
+
+# =========================================================
+# BUILD NUMBER
+# =========================================================
+
+name: '1.0.$(Date:yyyyMMdd).$(Rev:r)'
+
+# =========================================================
+# DEPLOYMENT LOCKING
+# =========================================================
+
 lockBehavior: sequential
+
+# =========================================================
+# AGENT POOL
+# =========================================================
+
 pool:
   name: 'SelfHosted-Windows-Agent'
 
@@ -21,12 +41,10 @@ parameters:
 
   type: string
 
-  default: 'claimservice'
+  default: 'ClaimServiceAPI'
 
   values:
-    - claimservice
-    - authservice
-    - paymentservice
+    - ClaimServiceAPI
 
 # =========================================================
 # ENVIRONMENT SELECTION
@@ -43,27 +61,507 @@ parameters:
   values:
     - dev
     - qa
-    - uat
-    - staging
     - prod
 
+# =========================================================
+# VARIABLES
+# =========================================================
+
 variables:
-# GLOBAL VARIABLES
-- template: variables/global.yml
 
+# =========================================================
+# BUILD VARIABLES
+# =========================================================
+
+- name: BuildConfiguration
+  value: 'Release'
+
+- name: DotNetSdkVersion
+  value: '9.0.x'
+
+# =========================================================
+# DEPLOYMENT VARIABLES
+# =========================================================
+
+- name: RootDeploymentPath
+  value: 'D:\Applications'
+
+- name: RootBackupPath
+  value: 'D:\Backup'
+
+- name: DeploymentLogPath
+  value: 'D:\DeploymentLogs'
+
+- name: BackupRetentionDays
+  value: '15'
+
+# =========================================================
 # ENVIRONMENT VARIABLES
-- template: environments/${{ parameters.environmentName }}.yml
+# =========================================================
 
+- name: EnvironmentName
+  value: '${{ parameters.environmentName }}'
+
+# =========================================================
 # SERVICE VARIABLES
-- template: services/${{ parameters.serviceName }}.yml
+# =========================================================
+
+# CLAIM SERVICE
+- ${{ if eq(parameters.serviceName, 'ClaimServiceAPI') }}:
+
+  - name: Service.Name
+    value: 'ClaimServiceAPI'
+
+  - name: Service.ShortName
+    value: 'claim'
+
+  - name: Project.Path
+    value: 'SampleWebAppCICD/WebApplication4CICD/WebApplication4CICD.csproj'
+
+  - name: IIS.AppPoolName
+    value: 'ClaimServiceAPI'
+
+  - name: IIS.WebsiteName
+    value: 'ClaimServiceAPI'
+
+  - name: Deployment.ServiceFolder
+    value: 'ClaimServiceAPI'
+
+  - name: HealthCheckUrl
+    value: 'https://claim.company.com/health'
 
 # =========================================================
 # STAGES
 # =========================================================
+
 stages:
 
-# BUILD
-- template: templates/build.yml
+# =========================================================
+# BUILD STAGE
+# =========================================================
 
-# DEPLOY
-- template: templates/deploy.yml
+- stage: Build
+
+  displayName: 'Build Application'
+
+  jobs:
+
+  - job: BuildJob
+
+    displayName: 'Build ASP.NET Core API'
+
+    steps:
+
+    - checkout: self
+
+    # # =========================================================
+    # # NUGET CACHE
+    # # =========================================================
+
+    # - task: Cache@2
+    #   displayName: 'NuGet Cache'
+
+    #   inputs:
+    #     key: 'nuget | "$(Agent.OS)" | **/*.csproj'
+
+    #     restoreKeys: |
+    #       nuget | "$(Agent.OS)"
+
+    #     path: $(NUGET_PACKAGES)
+
+    # =========================================================
+    # INSTALL SDK
+    # =========================================================
+
+    - task: UseDotNet@2
+      displayName: 'Install .NET SDK'
+
+      inputs:
+        packageType: 'sdk'
+
+        version: '$(DotNetSdkVersion)'
+
+    # =========================================================
+    # RESTORE
+    # =========================================================
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Restore Packages'
+
+      inputs:
+        command: 'restore'
+
+        projects: '$(Project.Path)'
+
+    # =========================================================
+    # BUILD
+    # =========================================================
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Build Solution'
+
+      inputs:
+        command: 'build'
+
+        projects: '$(Project.Path)'
+
+        arguments: '--configuration $(BuildConfiguration) /p:NoWarn="1998'
+
+    # =========================================================
+    # PUBLISH
+    # =========================================================
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Publish Application'
+
+      inputs:
+        command: 'publish'
+
+        publishWebProjects: false
+
+        projects: '$(Project.Path)'
+
+        arguments: >
+          --configuration $(BuildConfiguration)
+          --output $(Build.ArtifactStagingDirectory)
+
+    # =========================================================
+    # CREATE VERSIONED ZIP
+    # =========================================================
+
+    - task: ArchiveFiles@2
+      displayName: 'Create Artifact ZIP'
+
+      inputs:
+        rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+
+        archiveType: 'zip'
+
+        archiveFile: >
+          $(Build.ArtifactStagingDirectory)\
+          $(Service.Name)_$(Build.BuildNumber).zip
+
+        replaceExistingArchive: true
+
+    # =========================================================
+    # PUBLISH ARTIFACT
+    # =========================================================
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact'
+
+      inputs:
+        PathtoPublish: >
+          $(Build.ArtifactStagingDirectory)\
+          $(Service.Name)_$(Build.BuildNumber).zip
+
+        ArtifactName: '$(Service.Name)'
+
+# =========================================================
+# DEPLOYMENT STAGE
+# MANUAL DEPLOYMENT ONLY
+# =========================================================
+
+- stage: Deploy
+
+  displayName: 'Deploy Application'
+
+  dependsOn: Build
+
+  # =========================================================
+  # DEPLOY ONLY WHEN MANUALLY RUN
+  # =========================================================
+
+  condition: eq(variables['Build.Reason'], 'Manual')
+
+  jobs:
+
+  - deployment: DeployApplication
+
+    displayName: 'Deploy To $(EnvironmentName)'
+
+    environment: '$(EnvironmentName)'
+
+    strategy:
+
+      runOnce:
+
+        deploy:
+
+          steps:
+
+          # =========================================================
+          # DOWNLOAD ARTIFACT
+          # =========================================================
+
+          - download: current
+
+            artifact: '$(Service.Name)'
+
+          # =========================================================
+          # VALIDATE .NET RUNTIME
+          # =========================================================
+
+          - task: PowerShell@2
+            displayName: 'Validate .NET Runtime'
+
+            inputs:
+              targetType: 'inline'
+
+              script: |
+
+                Write-Host "Checking installed .NET Runtime..."
+
+                $runtimeOutput = dotnet --list-runtimes
+
+                if ($runtimeOutput -notmatch "Microsoft.AspNetCore.App 9.") {
+
+                    Write-Error ".NET 9 Runtime not installed."
+                    exit 1
+                }
+
+                Write-Host ".NET Runtime validation successful."
+
+          # =========================================================
+          # VALIDATE IIS
+          # =========================================================
+
+          - task: PowerShell@2
+            displayName: 'Validate IIS'
+
+            inputs:
+              targetType: 'inline'
+
+              script: |
+
+                $iis = Get-WindowsFeature -Name Web-Server
+
+                if ($iis.InstallState -ne "Installed") {
+
+                    Write-Error "IIS is not installed."
+                    exit 1
+                }
+
+                Write-Host "IIS validation successful."
+
+          # =========================================================
+          # CREATE LOG DIRECTORY
+          # =========================================================
+
+          - task: PowerShell@2
+            displayName: 'Create Deployment Log Directory'
+
+            inputs:
+              targetType: 'inline'
+
+              script: |
+
+                if (!(Test-Path "$(DeploymentLogPath)")) {
+
+                    New-Item `
+                    -ItemType Directory `
+                    -Path "$(DeploymentLogPath)"
+                }
+
+          # =========================================================
+          # BACKUP CURRENT DEPLOYMENT
+          # =========================================================
+
+          - task: PowerShell@2
+            displayName: 'Backup Existing Deployment'
+
+            inputs:
+              targetType: 'inline'
+
+              script: |
+
+                $deploymentPath =
+                "$(RootDeploymentPath)\$(Deployment.ServiceFolder)"
+
+                $backupPath =
+                "$(RootBackupPath)\$(Deployment.ServiceFolder)"
+
+                if (!(Test-Path $backupPath)) {
+
+                    New-Item `
+                    -ItemType Directory `
+                    -Path $backupPath
+                }
+
+                $timestamp =
+                Get-Date -Format "yyyyMMdd_HHmmss"
+
+                $backupFile =
+                "$backupPath\$(Service.Name)_$(Build.BuildNumber)_$timestamp.zip"
+
+                Compress-Archive `
+                    -Path "$deploymentPath\*" `
+                    -DestinationPath $backupFile `
+                    -Force
+
+                Write-Host "Backup completed."
+
+          # =========================================================
+          # STOP IIS APP POOL
+          # =========================================================
+
+          - task: PowerShell@2
+            displayName: 'Stop IIS App Pool'
+
+            inputs:
+              targetType: 'inline'
+
+              script: |
+
+                Import-Module WebAdministration
+
+                Stop-WebAppPool `
+                -Name "$(IIS.AppPoolName)"
+
+          # =========================================================
+          # EXTRACT ARTIFACT
+          # =========================================================
+
+          - task: ExtractFiles@1
+            displayName: 'Extract Deployment Package'
+
+            inputs:
+              archiveFilePatterns: >
+                $(Pipeline.Workspace)\
+                $(Service.Name)\*.zip
+
+              destinationFolder: >
+                $(Pipeline.Workspace)\Extracted
+
+              cleanDestinationFolder: true
+
+          # =========================================================
+          # CLEAN DEPLOYMENT DIRECTORY
+          # =========================================================
+
+          - task: PowerShell@2
+            displayName: 'Clean Deployment Folder'
+
+            inputs:
+              targetType: 'inline'
+
+              script: |
+
+                $deploymentPath =
+                "$(RootDeploymentPath)\$(Deployment.ServiceFolder)"
+
+                Get-ChildItem `
+                $deploymentPath `
+                -Recurse |
+
+                Remove-Item `
+                -Recurse `
+                -Force
+
+          # =========================================================
+          # COPY FILES
+          # =========================================================
+
+          - task: CopyFiles@2
+            displayName: 'Copy Deployment Files'
+
+            inputs:
+              SourceFolder: '$(Pipeline.Workspace)\Extracted'
+
+              Contents: '**'
+
+              TargetFolder: >
+                $(RootDeploymentPath)\
+                $(Deployment.ServiceFolder)
+
+              OverWrite: true
+
+          # =========================================================
+          # START IIS APP POOL
+          # =========================================================
+
+          - task: PowerShell@2
+            displayName: 'Start IIS App Pool'
+
+            inputs:
+              targetType: 'inline'
+
+              script: |
+
+                Import-Module WebAdministration
+
+                Start-WebAppPool `
+                -Name "$(IIS.AppPoolName)"
+
+          # =========================================================
+          # HEALTH CHECK
+          # =========================================================
+
+          - task: PowerShell@2
+            displayName: 'Application Health Check'
+
+            inputs:
+              targetType: 'inline'
+
+              script: |
+
+                Start-Sleep -Seconds 15
+
+                try {
+
+                    $response =
+                    Invoke-WebRequest `
+                        -Uri "$(HealthCheckUrl)" `
+                        -UseBasicParsing
+
+                    if ($response.StatusCode -eq 200) {
+
+                        Write-Host "Health check successful."
+                    }
+                    else {
+
+                        Write-Error "Health check failed."
+                        exit 1
+                    }
+                }
+                catch {
+
+                    Write-Error "Application unreachable."
+                    exit 1
+                }
+
+          # DEPLOYMENT SUCCESS LOG
+          # =========================================================
+
+          - task: PowerShell@2
+            displayName: 'Write Deployment Log'
+
+            inputs:
+              targetType: 'inline'
+
+              script: |
+
+                $logFile =
+                "$(DeploymentLogPath)\deployment.log"
+
+                $message = @"
+
+                =======================================
+                Deployment Successful
+                =======================================
+
+                Service      : $(Service.Name)
+
+                Environment  : $(EnvironmentName)
+
+                Build Number : $(Build.BuildNumber)
+
+                Deployed At  : $(Build.QueuedTime)
+
+                =======================================
+
+                "@
+
+                Add-Content `
+                -Path $logFile `
+                -Value $message
