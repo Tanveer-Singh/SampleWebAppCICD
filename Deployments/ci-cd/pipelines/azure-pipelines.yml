@@ -473,7 +473,7 @@ stages:
             displayName: 'Extract Deployment Package'
 
             inputs:
-              archiveFilePatterns: $(Pipeline.Workspace)/**/*.zip
+              archiveFilePatterns: $(Pipeline.Workspace)/$(Service.Name)_$(Build.BuildNumber).zip
               destinationFolder: $(Pipeline.Workspace)\Extracted
               cleanDestinationFolder: true
 
