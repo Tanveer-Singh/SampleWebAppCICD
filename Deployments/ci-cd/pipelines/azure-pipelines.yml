@@ -49,13 +49,13 @@ parameters:
 
 variables:
 # GLOBAL VARIABLES
-- template: Deployements/ci-cd/pipelines/variables/global.yml
+- template: variables/global.yml
 
 # ENVIRONMENT VARIABLES
-- template: Deployments/ci-cd/pipelines/environments/${{ parameters.environmentName }}.yml
+- template: environments/${{ parameters.environmentName }}.yml
 
 # SERVICE VARIABLES
-- template: Deployments/ci-cd/pipelines/services/${{ parameters.serviceName }}.yml
+- template: services/${{ parameters.serviceName }}.yml
 
 # =========================================================
 # STAGES
@@ -63,7 +63,7 @@ variables:
 stages:
 
 # BUILD
-- template: Deployments/ci-cd/pipelines/templates/build.yml
+- template: templates/build.yml
 
 # DEPLOY
-- template: Deployments/ci-cd/pipelines/templates/deploy.yml
+- template: templates/deploy.yml
