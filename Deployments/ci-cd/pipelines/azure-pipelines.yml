@@ -293,10 +293,9 @@ stages:
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Pipeline Artifact'
-
       inputs:
-        targetPath: $(Build.ArtifactStagingDirectory)\artifact
-        artifact: '$(Service.Name)'
+         targetPath: '$(Build.ArtifactStagingDirectory)\$(Service.Name)_$(Build.BuildNumber).zip'
+         artifact: 'drop'
 
 # =========================================================
 # DEPLOYMENT STAGE
@@ -474,7 +473,7 @@ stages:
 
             inputs:
               archiveFilePatterns: $(Pipeline.Workspace)/$(Service.Name)_$(Build.BuildNumber).zip
-              destinationFolder: $(Pipeline.Workspace)\Extracted
+              destinationFolder: $(Pipeline.Workspace)/Extracted
               cleanDestinationFolder: true
 
           # =========================================================
