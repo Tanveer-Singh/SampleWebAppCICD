@@ -215,7 +215,7 @@ stages:
               targetType: inline
               script: |
 
-                $source = "$(Pipeline.Workspace)\drop"
+                $source = "$(Pipeline.Workspace)\$(Service.Name)"
                 $target = "$(RootDeploymentPath)\$(Deployment.ServiceFolder)"
 
                 if (Test-Path $target) {
