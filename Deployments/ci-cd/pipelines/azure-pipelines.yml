@@ -154,27 +154,12 @@ stages:
 
     - checkout: self
 
-    # # =========================================================
-    # # NUGET CACHE
-    # # =========================================================
-
-    # - task: Cache@2
-    #   displayName: 'NuGet Cache'
-
-    #   inputs:
-    #     key: 'nuget | "$(Agent.OS)" | **/*.csproj'
-
-    #     restoreKeys: |
-    #       nuget | "$(Agent.OS)"
-
-    #     path: $(NUGET_PACKAGES)
-
     # =========================================================
     # INSTALL SDK
     # =========================================================
 
     - task: UseDotNet@2
-      displayName: 'Install .NET SDK'
+      displayName: 'Install .NET  9SDK'
 
       inputs:
         packageType: 'sdk'
