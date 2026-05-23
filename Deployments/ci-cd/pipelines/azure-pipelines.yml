@@ -270,9 +270,7 @@ stages:
 
         archiveType: 'zip'
 
-        archiveFile: >
-          $(Build.ArtifactStagingDirectory)\artifact\
-          $(Service.Name)_$(Build.BuildNumber).zip
+        archiveFile: $(Build.ArtifactStagingDirectory)\artifact\$(Service.Name)_$(Build.BuildNumber).zip
 
         replaceExistingArchive: true
 
