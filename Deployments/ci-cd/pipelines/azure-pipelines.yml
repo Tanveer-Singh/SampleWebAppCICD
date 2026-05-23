@@ -113,15 +113,15 @@ stages:
         projects: '$(Project.Path)'
         arguments: >
           --configuration $(BuildConfiguration)
-          --output $(Build.ArtifactStagingDirectory)\publish
+          --output $(Build.ArtifactStagingDirectory)\{Service.Name}
         zipAfterPublish: false
 
     # Publish artifact as folder
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Artifact'
       inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)\publish'
-        artifact: 'drop'
+        targetPath: '$(Build.ArtifactStagingDirectory)\{Service.Name}'
+        artifact: '{Service.Name}'
 
 # =========================================================
 # DEPLOY STAGE
@@ -146,7 +146,7 @@ stages:
             displayName: 'Download Artifact'
             inputs:
               artifact: 'drop'
-              path: '$(Pipeline.Workspace)\drop'
+              path: '$(Pipeline.Workspace)\{Service.Name}'
 
           # =====================================================
           # DEBUG (OPTIONAL BUT USEFUL)
@@ -157,7 +157,7 @@ stages:
               targetType: inline
               script: |
                 Write-Host "Downloaded files:"
-                Get-ChildItem "$(Pipeline.Workspace)\drop" -Recurse
+                Get-ChildItem "$(Pipeline.Workspace)\{Service.Name}" -Recurse
 
           # =====================================================
           # BACKUP CURRENT DEPLOYMENT
