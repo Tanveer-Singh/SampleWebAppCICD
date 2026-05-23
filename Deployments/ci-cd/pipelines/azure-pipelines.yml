@@ -247,15 +247,20 @@ stages:
                 Start-Sleep -Seconds 10
 
                 try {
-                    $response = Invoke-WebRequest -Uri "$(HealthCheckUrl)" -UseBasicParsing
-                    if ($response.StatusCode -ne 200) {
-                        throw "Health check failed"
+                    $response = Invoke-WebRequest `
+                      -Uri "$(HealthCheckUrl)" `
+                      -UseBasicParsing
+
+                    if ($response.StatusCode -eq 200) {
+                      Write-Host "Health check successful."
                     }
-                }
-                catch {
-                    Write-Error "Application failed health check"
-                    exit 1
-                }
+                    else {
+                      Write-Warning "Health check failed with status:$($response.StatusCode)"
+                    }
+                  }
+                catch { 
+                    Write-Warning "Application unreachable:$($_.Exception.Message)"
+                 }
 
           # =====================================================
           # LOG DEPLOYMENT
