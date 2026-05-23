@@ -436,6 +436,20 @@ stages:
                 }
 
           # =========================================================
+          # Debug IIS APP POOL
+          # =========================================================
+                - task: PowerShell@2
+                    displayName: 'Debug IIS Access'
+                   
+                    inputs:
+                    targetType: 'inline'
+
+                    script: |
+                    
+                    whoami
+                    Import-Module WebAdministration
+                    Get-ChildItem IIS:\AppPools
+          # =========================================================
           # STOP IIS APP POOL
           # =========================================================
 
