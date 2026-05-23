@@ -338,7 +338,6 @@ stages:
 
             inputs:
               artifact: '$(Service.Name)'
-
               path: '$(Pipeline.Workspace)'
 
           # =========================================================
@@ -470,11 +469,10 @@ stages:
 
           - task: ExtractFiles@1
             displayName: 'Extract Deployment Package'
-
             inputs:
-              archiveFilePatterns: $(Pipeline.Workspace)\$(Service.Name)\*.zip
-              destinationFolder: $(Pipeline.Workspace)\Extracted
-              cleanDestinationFolder: true
+             archiveFilePatterns: '$(Pipeline.Workspace)\$(Service.Name)\$(Service.Name)_$(Build.BuildNumber).zip'              
+             destinationFolder: $(Pipeline.Workspace)\Extracted
+             cleanDestinationFolder: true
 
           # =========================================================
           # CLEAN DEPLOYMENT FOLDER
