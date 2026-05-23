@@ -1,5 +1,5 @@
 # =========================================================
-# BUILD TRIGGER
+# MANUAL TRIGGER ONLY
 # =========================================================
 
 trigger: none
@@ -106,7 +106,6 @@ variables:
 # SERVICE VARIABLES
 # =========================================================
 
-# CLAIM SERVICE
 - ${{ if eq(parameters.serviceName, 'ClaimServiceAPI') }}:
 
   - name: Service.Name
@@ -116,7 +115,7 @@ variables:
     value: 'claim'
 
   - name: Project.Path
-    value: 'WebApplication4CICD/WebApplication4CICD.csproj'
+    value: 'SampleWebAppCICD/WebApplication4CICD/WebApplication4CICD.csproj'
 
   - name: IIS.AppPoolName
     value: 'ClaimServiceAPI'
@@ -152,14 +151,18 @@ stages:
 
     steps:
 
+    # =========================================================
+    # CHECKOUT
+    # =========================================================
+
     - checkout: self
 
     # =========================================================
-    # INSTALL SDK
+    # INSTALL .NET SDK
     # =========================================================
 
     - task: UseDotNet@2
-      displayName: 'Install .NET  9SDK'
+      displayName: 'Install .NET 9 SDK'
 
       inputs:
         packageType: 'sdk'
@@ -167,7 +170,37 @@ stages:
         version: '$(DotNetSdkVersion)'
 
     # =========================================================
-    # BUILD
+    # VERIFY .NET INSTALLATION
+    # =========================================================
+
+    - task: PowerShell@2
+      displayName: 'Verify .NET SDK'
+
+      inputs:
+        targetType: 'inline'
+
+        script: |
+
+          dotnet --version
+
+          dotnet --list-sdks
+
+          dotnet --list-runtimes
+
+    # =========================================================
+    # RESTORE PACKAGES
+    # =========================================================
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Restore Packages'
+
+      inputs:
+        command: 'restore'
+
+        projects: '$(Project.Path)'
+
+    # =========================================================
+    # BUILD APPLICATION
     # =========================================================
 
     - task: DotNetCoreCLI@2
@@ -178,10 +211,29 @@ stages:
 
         projects: '$(Project.Path)'
 
-        arguments: '--configuration $(BuildConfiguration) /p:NoWarn="1998'
+        arguments: >
+          --configuration $(BuildConfiguration)
+          /p:NoWarn=1998
 
     # =========================================================
-    # PUBLISH
+    # RUN TESTS
+    # =========================================================
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Run Unit Tests'
+
+      inputs:
+        command: 'test'
+
+        projects: '**/*Tests/*.csproj'
+
+        arguments: >
+          --configuration $(BuildConfiguration)
+
+      continueOnError: true
+
+    # =========================================================
+    # PUBLISH APPLICATION
     # =========================================================
 
     - task: DotNetCoreCLI@2
@@ -196,43 +248,83 @@ stages:
 
         arguments: >
           --configuration $(BuildConfiguration)
-          --output $(Build.ArtifactStagingDirectory)
+          --output $(Build.ArtifactStagingDirectory)\publish
 
     # =========================================================
-    # CREATE VERSIONED ZIP
+    # CREATE ARTIFACT DIRECTORY
+    # =========================================================
+
+    - task: PowerShell@2
+      displayName: 'Create Artifact Directory'
+
+      inputs:
+        targetType: 'inline'
+
+        script: |
+
+          New-Item `
+          -ItemType Directory `
+          -Force `
+          -Path "$(Build.ArtifactStagingDirectory)\artifact"
+
+    # =========================================================
+    # CREATE ZIP PACKAGE
     # =========================================================
 
     - task: ArchiveFiles@2
       displayName: 'Create Artifact ZIP'
 
       inputs:
-        rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+        rootFolderOrFile: >
+          $(Build.ArtifactStagingDirectory)\publish
+
+        includeRootFolder: false
 
         archiveType: 'zip'
 
         archiveFile: >
-          $(Build.ArtifactStagingDirectory)\
+          $(Build.ArtifactStagingDirectory)\artifact\
           $(Service.Name)_$(Build.BuildNumber).zip
 
         replaceExistingArchive: true
 
     # =========================================================
-    # PUBLISH ARTIFACT
+    # VERIFY ARTIFACT FILES
     # =========================================================
 
-    - task: PublishBuildArtifacts@1
-      displayName: 'Publish Artifact'
+    - task: PowerShell@2
+      displayName: 'Verify Artifact Files'
 
       inputs:
-        PathtoPublish: >
-          $(Build.ArtifactStagingDirectory)\
-          $(Service.Name)_$(Build.BuildNumber).zip
+        targetType: 'inline'
 
-        ArtifactName: '$(Service.Name)'
+        script: |
+
+          Write-Host "===================================="
+
+          Write-Host "BUILD ARTIFACT STAGING DIRECTORY"
+
+          Write-Host "===================================="
+
+          Get-ChildItem `
+          "$(Build.ArtifactStagingDirectory)" `
+          -Recurse
+
+    # =========================================================
+    # PUBLISH PIPELINE ARTIFACT
+    # =========================================================
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Pipeline Artifact'
+
+      inputs:
+        targetPath: >
+          $(Build.ArtifactStagingDirectory)\artifact
+
+        artifact: '$(Service.Name)'
 
 # =========================================================
 # DEPLOYMENT STAGE
-# MANUAL DEPLOYMENT ONLY
 # =========================================================
 
 - stage: Deploy
@@ -242,10 +334,10 @@ stages:
   dependsOn: Build
 
   # =========================================================
-  # DEPLOY ONLY WHEN MANUALLY RUN
+  # DEPLOY ONLY IF BUILD SUCCESSFUL
   # =========================================================
 
-  condition: eq(variables['Build.Reason'], 'Manual')
+  condition: and(succeeded(),eq(variables['Build.Reason'], 'Manual'))
 
   jobs:
 
@@ -264,12 +356,38 @@ stages:
           steps:
 
           # =========================================================
-          # DOWNLOAD ARTIFACT
+          # DOWNLOAD PIPELINE ARTIFACT
           # =========================================================
 
-          - download: current
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Artifact'
 
-            artifact: '$(Service.Name)'
+            inputs:
+              artifact: '$(Service.Name)'
+
+              path: '$(Pipeline.Workspace)'
+
+          # =========================================================
+          # DEBUG DOWNLOADED FILES
+          # =========================================================
+
+          - task: PowerShell@2
+            displayName: 'Debug Downloaded Files'
+
+            inputs:
+              targetType: 'inline'
+
+              script: |
+
+                Write-Host "===================================="
+
+                Write-Host "PIPELINE WORKSPACE"
+
+                Write-Host "===================================="
+
+                Get-ChildItem `
+                "$(Pipeline.Workspace)" `
+                -Recurse
 
           # =========================================================
           # VALIDATE .NET RUNTIME
@@ -283,13 +401,12 @@ stages:
 
               script: |
 
-                Write-Host "Checking installed .NET Runtime..."
-
                 $runtimeOutput = dotnet --list-runtimes
 
                 if ($runtimeOutput -notmatch "Microsoft.AspNetCore.App 9.") {
 
                     Write-Error ".NET 9 Runtime not installed."
+
                     exit 1
                 }
 
@@ -312,29 +429,11 @@ stages:
                 if ($iis.InstallState -ne "Installed") {
 
                     Write-Error "IIS is not installed."
+
                     exit 1
                 }
 
                 Write-Host "IIS validation successful."
-
-          # =========================================================
-          # CREATE LOG DIRECTORY
-          # =========================================================
-
-          - task: PowerShell@2
-            displayName: 'Create Deployment Log Directory'
-
-            inputs:
-              targetType: 'inline'
-
-              script: |
-
-                if (!(Test-Path "$(DeploymentLogPath)")) {
-
-                    New-Item `
-                    -ItemType Directory `
-                    -Path "$(DeploymentLogPath)"
-                }
 
           # =========================================================
           # BACKUP CURRENT DEPLOYMENT
@@ -358,6 +457,7 @@ stages:
 
                     New-Item `
                     -ItemType Directory `
+                    -Force `
                     -Path $backupPath
                 }
 
@@ -367,12 +467,15 @@ stages:
                 $backupFile =
                 "$backupPath\$(Service.Name)_$(Build.BuildNumber)_$timestamp.zip"
 
-                Compress-Archive `
-                    -Path "$deploymentPath\*" `
-                    -DestinationPath $backupFile `
-                    -Force
+                if (Test-Path $deploymentPath) {
 
-                Write-Host "Backup completed."
+                    Compress-Archive `
+                        -Path "$deploymentPath\*" `
+                        -DestinationPath $backupFile `
+                        -Force
+
+                    Write-Host "Backup completed."
+                }
 
           # =========================================================
           # STOP IIS APP POOL
@@ -400,8 +503,7 @@ stages:
 
             inputs:
               archiveFilePatterns: >
-                $(Pipeline.Workspace)\
-                $(Service.Name)\*.zip
+                $(Pipeline.Workspace)/**/*.zip
 
               destinationFolder: >
                 $(Pipeline.Workspace)\Extracted
@@ -409,7 +511,7 @@ stages:
               cleanDestinationFolder: true
 
           # =========================================================
-          # CLEAN DEPLOYMENT DIRECTORY
+          # CLEAN DEPLOYMENT FOLDER
           # =========================================================
 
           - task: PowerShell@2
@@ -423,13 +525,16 @@ stages:
                 $deploymentPath =
                 "$(RootDeploymentPath)\$(Deployment.ServiceFolder)"
 
-                Get-ChildItem `
-                $deploymentPath `
-                -Recurse |
+                if (Test-Path $deploymentPath) {
 
-                Remove-Item `
-                -Recurse `
-                -Force
+                    Get-ChildItem `
+                    $deploymentPath `
+                    -Recurse |
+
+                    Remove-Item `
+                    -Recurse `
+                    -Force
+                }
 
           # =========================================================
           # COPY FILES
@@ -494,16 +599,47 @@ stages:
                     else {
 
                         Write-Error "Health check failed."
+
                         exit 1
                     }
                 }
                 catch {
 
                     Write-Error "Application unreachable."
+
                     exit 1
                 }
 
-          # DEPLOYMENT SUCCESS LOG
+          # =========================================================
+          # CLEAN OLD BACKUPS
+          # =========================================================
+
+          - task: PowerShell@2
+            displayName: 'Cleanup Old Backups'
+
+            inputs:
+              targetType: 'inline'
+
+              script: |
+
+                $backupPath =
+                "$(RootBackupPath)\$(Deployment.ServiceFolder)"
+
+                if (Test-Path $backupPath) {
+
+                    Get-ChildItem `
+                    $backupPath `
+                    -Filter *.zip |
+
+                    Where-Object {
+                        $_.CreationTime -lt (Get-Date).AddDays(-$(BackupRetentionDays))
+                    } |
+
+                    Remove-Item -Force
+                }
+
+          # =========================================================
+          # WRITE DEPLOYMENT LOG
           # =========================================================
 
           - task: PowerShell@2
@@ -513,6 +649,14 @@ stages:
               targetType: 'inline'
 
               script: |
+
+                if (!(Test-Path "$(DeploymentLogPath)")) {
+
+                    New-Item `
+                    -ItemType Directory `
+                    -Force `
+                    -Path "$(DeploymentLogPath)"
+                }
 
                 $logFile =
                 "$(DeploymentLogPath)\deployment.log"
