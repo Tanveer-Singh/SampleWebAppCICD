@@ -6,18 +6,23 @@ stages:
   - job: BuildJob
     displayName: Build Job
 
+  variables:
+    NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
+
     steps:
     - checkout: self
+      clean: true
+      fetchDepth: 0
 
     # =========================================================
     # CACHE (NuGet)
     # =========================================================
-    - task: Cache@2
-      inputs:
-        key: 'nuget | "$(Agent.OS)" | **/packages.lock.json, **/*.csproj'
-        restoreKeys: |
-          nuget | "$(Agent.OS)"
-        path: $(NUGET_PACKAGES)
+    #- task: Cache@2
+    #  inputs:
+    #    key: 'nuget | "$(Agent.OS)" | **/packages.lock.json, **/*.csproj'
+    #    restoreKeys: |
+    #      nuget | "$(Agent.OS)"
+    #    path: $(NUGET_PACKAGES)
 
     # =========================================================
     # .NET SDK
@@ -44,7 +49,7 @@ stages:
       inputs:
         command: 'build'
         projects: '$(ProjectPath)'
-        arguments: '--configuration $(BuildConfiguration) --no-restore'
+        arguments: '--configuration $(BuildConfiguration) --no-restore /p:NoWarn=1998'
 
     # =========================================================
     # PUBLISH (Output to folder)
