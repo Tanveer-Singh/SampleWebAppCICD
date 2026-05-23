@@ -186,12 +186,26 @@ stages:
           # STOP IIS
           # =====================================================
           - task: PowerShell@2
-            displayName: 'Stop App Pool'
-            inputs:
-              targetType: inline
-              script: |
+             displayName: 'Stop IIS App Pool (Safe)'
+             inputs:
+                targetType: inline
+                script: |
+
                 Import-Module WebAdministration
-                Stop-WebAppPool -Name "$(IIS.AppPoolName)"
+
+                $appPoolName = "$(IIS.AppPoolName)"
+
+                $state = (Get-WebAppPoolState -Name $appPoolName).Value
+
+                Write-Host "Current App Pool State: $state"
+
+                  if ($state -eq "Started") {
+                      Stop-WebAppPool -Name $appPoolName
+                      Write-Host "App Pool stopped successfully."
+                  }
+                  else {
+                      Write-Host "No action needed. Already in state: $state"
+                  }
 
           # =====================================================
           # DEPLOY (DIRECT COPY - NO EXTRACT)
