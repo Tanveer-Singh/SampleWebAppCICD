@@ -115,7 +115,7 @@ variables:
     value: 'claim'
 
   - name: Project.Path
-    value: 'SampleWebAppCICD/WebApplication4CICD/WebApplication4CICD.csproj'
+    value: 'WebApplication4CICD/WebApplication4CICD.csproj'
 
   - name: IIS.AppPoolName
     value: 'ClaimServiceAPI'
