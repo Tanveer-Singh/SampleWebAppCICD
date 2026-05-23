@@ -188,18 +188,6 @@ stages:
           dotnet --list-runtimes
 
     # =========================================================
-    # RESTORE PACKAGES
-    # =========================================================
-
-    - task: DotNetCoreCLI@2
-      displayName: 'Restore Packages'
-
-      inputs:
-        command: 'restore'
-
-        projects: '$(Project.Path)'
-
-    # =========================================================
     # BUILD APPLICATION
     # =========================================================
 
