@@ -263,15 +263,10 @@ stages:
       displayName: 'Create Artifact ZIP'
 
       inputs:
-        rootFolderOrFile: >
-          $(Build.ArtifactStagingDirectory)\publish
-
+        rootFolderOrFile: $(Build.ArtifactStagingDirectory)\publish
         includeRootFolder: false
-
         archiveType: 'zip'
-
         archiveFile: $(Build.ArtifactStagingDirectory)\artifact\$(Service.Name)_$(Build.BuildNumber).zip
-
         replaceExistingArchive: true
 
     # =========================================================
@@ -304,9 +299,7 @@ stages:
       displayName: 'Publish Pipeline Artifact'
 
       inputs:
-        targetPath: >
-          $(Build.ArtifactStagingDirectory)\artifact
-
+        targetPath: $(Build.ArtifactStagingDirectory)\artifact
         artifact: '$(Service.Name)'
 
 # =========================================================
@@ -484,12 +477,8 @@ stages:
             displayName: 'Extract Deployment Package'
 
             inputs:
-              archiveFilePatterns: >
-                $(Pipeline.Workspace)/**/*.zip
-
-              destinationFolder: >
-                $(Pipeline.Workspace)\Extracted
-
+              archiveFilePatterns: $(Pipeline.Workspace)/**/*.zip
+              destinationFolder: $(Pipeline.Workspace)\Extracted
               cleanDestinationFolder: true
 
           # =========================================================
@@ -527,13 +516,8 @@ stages:
 
             inputs:
               SourceFolder: '$(Pipeline.Workspace)\Extracted'
-
               Contents: '**'
-
-              TargetFolder: >
-                $(RootDeploymentPath)\
-                $(Deployment.ServiceFolder)
-
+              TargetFolder: $(RootDeploymentPath)\$(Deployment.ServiceFolder)
               OverWrite: true
 
           # =========================================================
