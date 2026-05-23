@@ -460,9 +460,22 @@ stages:
 
                 Import-Module WebAdministration
 
-                Stop-WebAppPool `
-                -Name "$(IIS.AppPoolName)"
+                $appPoolName = "$(IIS.AppPoolName)"
 
+                $appPoolState = (Get-WebAppPoolState -Name $appPoolName).Value
+
+                Write-Host "Current App Pool State: $appPoolState"
+
+                if ($appPoolState -eq "Started") {
+
+                    Stop-WebAppPool -Name $appPoolName
+
+                    Write-Host "App Pool stopped successfully."
+                }
+                else {
+
+                    Write-Host "App Pool already stopped."
+                }
           # =========================================================
           # EXTRACT ARTIFACT
           # =========================================================
