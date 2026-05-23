@@ -1,0 +1,96 @@
+stages:
+
+- stage: Deploy
+
+  dependsOn: Build
+
+  jobs:
+
+  - deployment: DeployApplication
+
+    environment: '$(EnvironmentName)'
+
+    strategy:
+
+      runOnce:
+
+        deploy:
+
+          steps:
+
+          # =========================================================
+          # DOWNLOAD ARTIFACT
+          # =========================================================
+
+          - download: current
+            artifact: '$(ApplicationName)'
+
+          # =========================================================
+          # STOP APP POOL
+          # =========================================================
+
+          - task: PowerShell@2
+            inputs:
+              targetType: 'inline'
+              script: |
+
+                Import-Module WebAdministration
+
+                Stop-WebAppPool `
+                -Name "$(IISAppPoolName)"
+
+          # =========================================================
+          # BACKUP
+          # =========================================================
+
+          - task: PowerShell@2
+            inputs:
+              targetType: 'inline'
+              script: |
+
+                $deploymentPath =
+                "$(RootDeploymentPath)\$(ServiceFolder)"
+
+                $backupPath =
+                "$(RootBackupPath)\$(ServiceFolder)"
+
+                if (!(Test-Path $backupPath)) {
+
+                    New-Item `
+                    -ItemType Directory `
+                    -Path $backupPath
+                }
+
+                $timestamp =
+                Get-Date -Format "yyyyMMdd_HHmmss"
+
+                $backupFile =
+                "$backupPath\$(ApplicationName)_$(Build.BuildNumber)_$timestamp.zip"
+
+                Compress-Archive `
+                    -Path "$deploymentPath\*" `
+                    -DestinationPath $backupFile `
+                    -Force
+
+          # =========================================================
+          # HEALTH CHECK
+          # =========================================================
+
+          - task: PowerShell@2
+            inputs:
+              targetType: 'inline'
+              script: |
+
+                $url =
+                "https://$(HealthCheckEndpoint)"
+
+                $response =
+                Invoke-WebRequest `
+                    -Uri $url `
+                    -UseBasicParsing
+
+                if ($response.StatusCode -ne 200) {
+
+                    Write-Error "Health check failed."
+                    exit 1
+                }

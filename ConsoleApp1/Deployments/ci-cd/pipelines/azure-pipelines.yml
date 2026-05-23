@@ -1,0 +1,69 @@
+trigger: none
+pr: none
+name: '1.0.$(Rev:r)'
+lockBehavior: sequential
+pool:
+  name: 'SelfHosted-Windows-Agent'
+
+# =========================================================
+# PARAMETERS
+# =========================================================
+
+parameters:
+
+# =========================================================
+# MICROSERVICE SELECTION
+# =========================================================
+
+- name: serviceName
+
+  displayName: 'Select Microservice'
+
+  type: string
+
+  default: 'claimservice'
+
+  values:
+    - claimservice
+    - authservice
+    - paymentservice
+
+# =========================================================
+# ENVIRONMENT SELECTION
+# =========================================================
+
+- name: environmentName
+
+  displayName: 'Select Environment'
+
+  type: string
+
+  default: 'dev'
+
+  values:
+    - dev
+    - qa
+    - uat
+    - staging
+    - prod
+
+variables:
+# GLOBAL VARIABLES
+- template: variables/global.yml
+
+# ENVIRONMENT VARIABLES
+- template: variables/environments/${{ parameters.environmentName }}.yml
+
+# SERVICE VARIABLES
+- template: variables/services/${{ parameters.serviceName }}.yml
+
+# =========================================================
+# STAGES
+# =========================================================
+stages:
+
+# BUILD
+- template: templates/build.yml
+
+# DEPLOY
+- template: templates/deploy.yml

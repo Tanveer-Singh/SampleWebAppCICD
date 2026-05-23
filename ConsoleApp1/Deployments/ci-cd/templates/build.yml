@@ -1,0 +1,80 @@
+stages:
+- stage: Build
+  displayName: Build Application
+
+  jobs:
+  - job: BuildJob
+    displayName: Build Job
+
+    steps:
+    - checkout: self
+
+    # =========================================================
+    # CACHE (NuGet)
+    # =========================================================
+    - task: Cache@2
+      inputs:
+        key: 'nuget | "$(Agent.OS)" | **/packages.lock.json, **/*.csproj'
+        restoreKeys: |
+          nuget | "$(Agent.OS)"
+        path: $(NUGET_PACKAGES)
+
+    # =========================================================
+    # .NET SDK
+    # =========================================================
+    - task: UseDotNet@2
+      inputs:
+        packageType: 'sdk'
+        version: '$(DotNetSdkVersion)'
+
+    # =========================================================
+    # RESTORE
+    # =========================================================
+    - task: DotNetCoreCLI@2
+      displayName: Restore
+      inputs:
+        command: 'restore'
+        projects: '$(ProjectPath)'
+
+    # =========================================================
+    # BUILD
+    # =========================================================
+    - task: DotNetCoreCLI@2
+      displayName: Build
+      inputs:
+        command: 'build'
+        projects: '$(ProjectPath)'
+        arguments: '--configuration $(BuildConfiguration) --no-restore'
+
+    # =========================================================
+    # PUBLISH (Output to folder)
+    # =========================================================
+    - task: DotNetCoreCLI@2
+      displayName: Publish
+      inputs:
+        command: 'publish'
+        projects: '$(ProjectPath)'
+        arguments: >
+          --configuration $(BuildConfiguration)
+          --output $(Build.ArtifactStagingDirectory)/publish
+          --no-build
+
+    # =========================================================
+    # ZIP ARTIFACT
+    # =========================================================
+    - task: ArchiveFiles@2
+      displayName: Zip Output
+      inputs:
+        rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/publish'
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/$(ApplicationName)_$(Build.BuildNumber).zip'
+        replaceExistingArchive: true
+
+    # =========================================================
+    # PUBLISH ARTIFACT
+    # =========================================================
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Artifact
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(ApplicationName)_$(Build.BuildNumber).zip'
+        ArtifactName: 'drop'

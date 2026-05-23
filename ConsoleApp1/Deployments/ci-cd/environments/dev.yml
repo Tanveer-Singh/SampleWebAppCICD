@@ -1,0 +1,42 @@
+variables:
+
+# =========================================================
+# ENVIRONMENT
+# =========================================================
+
+- name: EnvironmentName
+  value: 'Development'
+
+# =========================================================
+# IIS
+# =========================================================
+
+- name: IISWebsiteName
+  value: 'ClaimServiceAPI-DEV'
+
+- name: IISAppPoolName
+  value: 'ClaimServiceAPI-DEV'
+
+# =========================================================
+# PATHS
+# =========================================================
+
+- name: DeploymentPath
+  value: 'D:\Dev\ClaimServiceAPI'
+
+- name: BackupPath
+  value: 'D:\Backup\Dev\ClaimServiceAPI'
+
+# =========================================================
+# CONNECTION STRINGS
+# =========================================================
+
+- name: DefaultConnection
+  value: 'Server=DEVSQL;Database=ClaimDB_Dev;Integrated Security=True;'
+
+# =========================================================
+# URLS
+# =========================================================
+
+- name: HealthCheckUrl
+  value: 'https://dev-claim.company.com/health'

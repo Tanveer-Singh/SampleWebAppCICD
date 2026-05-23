@@ -1,0 +1,80 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\SamCd\\SampleWebAppCICD\\WebApplication4CICD\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\Demo_Learning\\Sam1\\ConsoleApp1\\Deployments\\ci-cd\\services\\claimservice.yml||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\Demo_Learning\\Sam1\\ConsoleApp1\\Deployments\\ci-cd\\pipelines\\azure-pipelines.yml||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|E:\\Demo_Learning\\Sam1\\ConsoleApp1\\Deployments\\ci-cd\\environments\\dev.yml||{8B382828-6202-11D1-8870-0000F87579D2}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 5,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "claimservice.yml",
+              "DocumentMoniker": "E:\\Demo_Learning\\Sam1\\ConsoleApp1\\Deployments\\ci-cd\\services\\claimservice.yml",
+              "ToolTip": "E:\\Demo_Learning\\Sam1\\ConsoleApp1\\Deployments\\ci-cd\\services\\claimservice.yml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003775|",
+              "WhenOpened": "2026-05-23T07:41:16.934Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "azure-pipelines.yml",
+              "DocumentMoniker": "E:\\Demo_Learning\\Sam1\\ConsoleApp1\\Deployments\\ci-cd\\pipelines\\azure-pipelines.yml",
+              "ToolTip": "E:\\Demo_Learning\\Sam1\\ConsoleApp1\\Deployments\\ci-cd\\pipelines\\azure-pipelines.yml",
+              "ViewState": "AgIAAB4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003775|",
+              "WhenOpened": "2026-05-23T07:41:06.319Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "dev.yml",
+              "DocumentMoniker": "E:\\Demo_Learning\\Sam1\\ConsoleApp1\\Deployments\\ci-cd\\environments\\dev.yml",
+              "ToolTip": "E:\\Demo_Learning\\Sam1\\ConsoleApp1\\Deployments\\ci-cd\\environments\\dev.yml",
+              "ViewState": "AgIAABwAAAAAAAAAAAAqwCkAAAAvAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003775|",
+              "WhenOpened": "2026-05-23T07:40:28.205Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

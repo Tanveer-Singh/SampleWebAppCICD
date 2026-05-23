@@ -1,0 +1,25 @@
+variables:
+
+- name: EnvironmentName
+  value: 'QA'
+
+- name: IISWebsiteName
+  value: 'ClaimServiceAPI-QA'
+
+- name: IISAppPoolName
+  value: 'ClaimServiceAPI-QA'
+
+- name: DeploymentPath
+  value: 'D:\QA\ClaimServiceAPI'
+
+- name: BackupPath
+  value: 'D:\Backup\QA\ClaimServiceAPI'
+
+- name: DefaultConnection
+  value: 'Server=QASQL;Database=ClaimDB_QA;Integrated Security=True;'
+
+- name: HealthCheckUrl
+  value: 'https://qa-claim.company.com/health'
+
+- name: TeamsWebhookUrl
+  value: 'https://qa-webhook-url'

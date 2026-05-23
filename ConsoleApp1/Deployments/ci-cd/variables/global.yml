@@ -1,0 +1,41 @@
+variables:
+
+# =========================================================
+# BUILD
+# =========================================================
+
+- name: buildConfiguration
+  value: 'Release'
+
+- name: DotNetSdkVersion
+  value: '9.0.x'
+
+# =========================================================
+# DEPLOYMENT
+# =========================================================
+
+# - name: BackupRetentionDays
+#   value: '365'
+
+# - name: HealthCheckRetryCount
+#   value: '5'
+
+# - name: HealthCheckRetryDelay
+#   value: '10'
+
+# =========================================================
+# PATHS
+# =========================================================
+
+- name: RootDeploymentPath
+  value: 'D:\Applications'
+
+- name: RootBackupPath
+  value: 'D:\Backup'
+
+# =========================================================
+# NOTIFICATIONS
+# =========================================================
+
+- name: DeploymentLogPath
+  value: 'D:\DeploymentLogs'

@@ -1,0 +1,22 @@
+variables:
+
+- name: ApplicationName
+  value: 'PreClaimServiceAPI'
+
+- name: ProjectPath
+  value: 'WebApplication4CICD/WebApplication4CICD.csproj'
+
+- name: IISAppPoolName
+  value: 'PreClaimServiceAPI'
+
+- name: IISWebsiteName
+  value: 'WebApplication4CICD.csproj'
+
+- name: ServiceFolder
+  value: 'PreClaimServiceAPI'
+
+# - name: HealthCheckEndpoint
+#   value: 'claim.company.com/'
+
+# - name: DatabaseName
+#   value: 'ClaimDB'
