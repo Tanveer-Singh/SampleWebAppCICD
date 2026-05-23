@@ -392,28 +392,6 @@ stages:
                 Write-Host ""
                 Write-Host "Installed .NET SDKs:"
                 dotnet --list-sdks
-          # =========================================================
-          # VALIDATE IIS
-          # =========================================================
-
-          - task: PowerShell@2
-            displayName: 'Validate IIS'
-
-            inputs:
-              targetType: 'inline'
-
-              script: |
-
-                $iis = Get-WindowsFeature -Name Web-Server
-
-                if ($iis.InstallState -ne "Installed") {
-
-                    Write-Error "IIS is not installed."
-
-                    exit 1
-                }
-
-                Write-Host "IIS validation successful."
 
           # =========================================================
           # BACKUP CURRENT DEPLOYMENT
