@@ -389,6 +389,11 @@ stages:
 
               script: |
 
+                Write-Host "DOTNET INFO"
+                 dotnet --info
+                  
+                Write-Host "INSTALLED RUNTIMES"
+
                 $runtimeOutput = dotnet --list-runtimes
 
                 if ($runtimeOutput -notmatch "Microsoft.AspNetCore.App 9.") {
